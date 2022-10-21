@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 import useAPI from "../../Services/APIs/Common/useAPI";
 import Person from "../../Services/APIs/Persons/Persons";
@@ -17,7 +19,15 @@ export default function Home() {
   
   const [cards, setCards] = useState([]);
   const getPersonAPI = useAPI(Person.getPersons);
+  const navigate = useNavigate();
 
+  const goToDetail = (person) => {
+    navigate("/detail/" + person.CPF, {
+      state: {
+        person: JSON.stringify(person)
+      },
+    });
+  };
 
   useEffect(() => {
     getPersonAPI
@@ -43,8 +53,7 @@ export default function Home() {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button size="small">Share</Button>
-                  <Button size="small">Learn More</Button>
+                  <Button size="small" onClick={() => goToDetail(person)} >Mais informações</Button>
                 </CardActions>
               </Card>
             </Grid>

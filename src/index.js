@@ -5,12 +5,16 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Home from "./Screens/Home/Home";
 import MuiThemes from "./Utils/Common/MuiThemes";
+import { BrowserRouter } from "react-router-dom";
+import Routes from "./Routes/Routes";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <MuiThemes>
-      <Home />
+      <BrowserRouter>
+        <Routes />
+      </BrowserRouter>
     </MuiThemes>
   </React.StrictMode>
 );
