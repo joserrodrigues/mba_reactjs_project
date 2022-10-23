@@ -12,13 +12,23 @@ import CardMedia from "@mui/material/CardMedia";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import './Home.css'
 
 export default function Home() {    
   
   const [cards, setCards] = useState([]);
+  const [isConfirmRemoveDialogOpen, setIsConfirmRemoveDialogOpen] = useState(false)
+  const [personChose, setPersonChose] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const getPersonAPI = useAPI(Person.getPersons);
+  const deletePersonAPI = useAPI(Person.deletePersons);
   const navigate = useNavigate();
 
   const goToDetail = (person) => {
@@ -29,7 +39,7 @@ export default function Home() {
     });
   };
 
-  const goToAdd = (person) => {
+  const goToAdd = () => {
     navigate("/detail/-1", {
       state: {
         person: "{}",
@@ -37,12 +47,52 @@ export default function Home() {
     });
   };
 
+  const confirmRemovePerson = (person) => {
+    setIsConfirmRemoveDialogOpen(true);
+    setPersonChose(person);
+  };
+
+  const deletePerson = (isConfirmed) => {
+    setIsConfirmRemoveDialogOpen(false);
+    if(!isConfirmed){      
+      setPersonChose(null)
+    } else {
+      setIsLoading(true)
+      deletePersonAPI
+        .requestPromise(personChose._id)
+        .then((info) => {
+          console.log("Retornando Info");
+          if(info.info.code === 1){
+            setPersonChose(null);
+            setCards([]);
+            getPersonsInfo();
+          }  else {
+            console.log(info);  
+            setIsLoading(false);
+            setPersonChose(null);            
+          }          
+        })
+        .catch((info) => {
+          console.log(info);
+          setIsLoading(false);
+          setPersonChose(null);
+        });
+    }
+  };
+  
+
   useEffect(() => {
+    getPersonsInfo();
+  }, []);
+
+  const getPersonsInfo = () => {
+    setIsLoading(true)
     getPersonAPI
       .requestPromise()
       .then((info) => {
-        let mountCards = [] 
+        let mountCards = [];
         info.persons.forEach((person) => {
+          setIsLoading(false);
           mountCards.push(
             <Grid key={person._id} item lg={4} md={6} sm={12}>
               <Card className="cardBox">
@@ -61,28 +111,60 @@ export default function Home() {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button size="small" onClick={() => goToDetail(person)} >Mais informações</Button>
+                  <Button size="small" onClick={() => goToDetail(person)}>Mais informações</Button>
+                  <Button size="small" onClick={() => confirmRemovePerson(person)}>Remover</Button>
                 </CardActions>
               </Card>
             </Grid>
           );
-        })
+        });
         setCards(mountCards);
       })
       .catch((info) => {
         console.log(info);
       });
-  }, []);
+  };
 
+  let info = null
+  if(isLoading){
+    info = (
+      <div className="circularProgressClass">
+        <CircularProgress color="secondary" />
+      </div>
+    );
+  } else {
+    info = <Grid container>{cards}</Grid>;
+  }
   return (
     <Container>
       <div className="TopPageTitle">
-        <Typography variant="h1" color="primary">Usuários</Typography>
+        <Typography variant="h1" color="primary">
+          Usuários
+        </Typography>
       </div>
       <div className="addButtonDiv">
-        <Button variant="primary" onClick={() => goToAdd()}>Adicionar</Button>
+        <Button variant="primary" onClick={() => goToAdd()}>
+          Adicionar
+        </Button>
       </div>
-      <Grid container>{cards}</Grid>
+      {info}
+      <Dialog
+        open={isConfirmRemoveDialogOpen}
+        onClose={() => confirmRemovePerson(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Remover Pessoa</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Deseja realmente remover o usuário {personChose != null ? personChose.firstName: ""}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => deletePerson(false)}>Não</Button>
+          <Button onClick={() => deletePerson(true)} autoFocus>Sim</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
