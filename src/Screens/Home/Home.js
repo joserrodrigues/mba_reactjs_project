@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { LoginContext } from "../../Store/LoginContext";
 import { useNavigate } from "react-router-dom";
 
 
@@ -21,7 +22,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 
 import './Home.css'
 
+
 export default function Home() {    
+    const context = useContext(LoginContext);
   
   const [cards, setCards] = useState([]);
   const [isConfirmRemoveDialogOpen, setIsConfirmRemoveDialogOpen] = useState(false)
@@ -45,6 +48,10 @@ export default function Home() {
         person: "{}",
       },
     });
+  };
+
+  const makeLogOff = () => {
+    context.onMakeLogoff();
   };
 
   const confirmRemovePerson = (person) => {
@@ -137,6 +144,9 @@ export default function Home() {
   }
   return (
     <Container>
+      <div className="addButtonDiv">
+        <Button onClick={() => makeLogOff()}>LogOff</Button>
+      </div>
       <div className="TopPageTitle">
         <Typography variant="h1" color="primary">
           Usuários
@@ -157,12 +167,15 @@ export default function Home() {
         <DialogTitle id="alert-dialog-title">Remover Pessoa</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Deseja realmente remover o usuário {personChose != null ? personChose.firstName: ""}?
+            Deseja realmente remover o usuário{" "}
+            {personChose != null ? personChose.firstName : ""}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => deletePerson(false)}>Não</Button>
-          <Button onClick={() => deletePerson(true)} autoFocus>Sim</Button>
+          <Button onClick={() => deletePerson(true)} autoFocus>
+            Sim
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

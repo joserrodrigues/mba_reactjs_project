@@ -1,20 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import Home from "./Screens/Home/Home";
 import MuiThemes from "./Utils/Common/MuiThemes";
 import { BrowserRouter } from "react-router-dom";
 import Routes from "./Routes/Routes";
+import {LoginContextProvider} from "./Store/LoginContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <MuiThemes>
-      <BrowserRouter>
-        <Routes />
-      </BrowserRouter>
+      <LoginContextProvider>
+        <BrowserRouter>
+          <Routes />
+        </BrowserRouter>
+      </LoginContextProvider>
     </MuiThemes>
   </React.StrictMode>
 );
