@@ -36,7 +36,7 @@ export default function Home() {
         let mountCards = [] 
         info.persons.forEach((person) => {
           mountCards.push(
-            <Grid key={person.CPF} item lg={4} md={6} sm={12}>
+            <Grid key={person._id} item lg={4} md={6} sm={12}>
               <Card className="cardBox">
                 <CardMedia
                   component="img"

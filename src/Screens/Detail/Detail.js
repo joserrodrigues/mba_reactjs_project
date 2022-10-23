@@ -1,26 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { Container, Button, Typography, Box, TextField } from "@mui/material";
+import {
+  Container,
+  Button,
+  Typography,
+  Box,
+  TextField,
+  CircularProgress,
+  Alert
+} from "@mui/material";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import useAPI from "../../Services/APIs/Common/useAPI";
+import Person from "../../Services/APIs/Persons/Persons";
+import "./Detail.css"
 
 export default function Detail() {
+
+  const updatePersonAPI = useAPI(Person.updatePersons);
+  const [isLoading, setIsLoading] = useState(false)
+  const [connectCode, setConnectCode] = useState(0)
+
   const { infoID } = useParams();
   const {
     state: { person },
   } = useLocation();
 
   const parsedPerson = JSON.parse(person);
+  console.log(parsedPerson);
+
   let navigate = useNavigate();
 
   const onBackButton = () => {
     navigate(-1);
   };
 
-
-  console.log(person);
-
-  
   const signInSchema = Yup.object().shape({
     firstName: Yup.string()
       .required("Primeiro nome é obrigatório")
@@ -41,8 +55,61 @@ export default function Detail() {
 
   const onClickLogin = (values) => {
     console.log(values);
+    let payload = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      jobTitle: values.jobTitle,
+      CPF: values.CPF,
+    };
+
+    setConnectCode(0);
+    setIsLoading(true)
+    updatePersonAPI
+    .requestPromise(parsedPerson._id,payload)
+    .then((info) => {        
+      console.log("Retornando Info");
+      console.log(info.codeInfo.id);
+      setIsLoading(false);
+      if(info.codeInfo.id === 1){
+        setConnectCode(1);
+        setTimeout(() => {
+          navigate(-1);
+        }, 2000);
+      } else {
+        setConnectCode(-1);
+      }
+    })
+    .catch((info) => {
+      console.log("Retornando Info Erro");
+      console.log(info);
+      setConnectCode(-1);
+    });
   };
 
+  let buttonInfo = null;
+  let alertComp = null;
+  if(isLoading){
+    buttonInfo = <CircularProgress color="secondary" />;
+  } else if (connectCode === 1){
+    alertComp = (
+      <Alert severity="success">
+        Alteração realizada com sucesso!
+      </Alert>
+    );    
+  } else {
+    if ( connectCode !== 0){
+      alertComp = (
+        <Alert severity="error">
+          Houve um erro ao conectar. Tente novamente mais tarde
+        </Alert>
+      );
+    }
+    buttonInfo = (
+      <Button variant="primary" type="submit">
+        Alterar
+      </Button>
+    );
+  }
   return (
     <Container>
       <Box className="contentBox">
@@ -53,22 +120,23 @@ export default function Detail() {
         </div>
         <Formik
           initialValues={{
-            firstName: "",
-            lastName: "",
-            jobTitle: "",
-            CPF: "",
+            firstName: parsedPerson.firstName,
+            lastName: parsedPerson.lastName,
+            jobTitle: parsedPerson.jobTitle,
+            CPF: parsedPerson.CPF,
           }}
           validationSchema={signInSchema}
           onSubmit={onClickLogin}
         >
           {(formik) => {
-            const { errors, setFieldValue } = formik;
+            const { errors, setFieldValue, values } = formik;
             return (
               <Form>
                 <TextField
                   required
                   id="outlined-required"
                   label="Primeiro Nome"
+                  value={values.firstName}
                   onChange={(e) => setFieldValue("firstName", e.target.value)}
                 />
                 <p></p>
@@ -82,6 +150,7 @@ export default function Detail() {
                   required
                   id="outlined-required"
                   label="Sobrenome"
+                  value={values.lastName}
                   onChange={(e) => setFieldValue("lastName", e.target.value)}
                 />
                 <p></p>
@@ -95,6 +164,7 @@ export default function Detail() {
                   required
                   id="outlined-required"
                   label="Profissão"
+                  value={values.jobTitle}
                   onChange={(e) => setFieldValue("jobTitle", e.target.value)}
                 />
                 <p></p>
@@ -108,6 +178,7 @@ export default function Detail() {
                   required
                   id="outlined-required"
                   label="CPF"
+                  value={values.CPF}
                   onChange={(e) => setFieldValue("CPF", e.target.value)}
                 />
                 <p></p>
@@ -117,9 +188,8 @@ export default function Detail() {
                   name="CPF"
                 />
                 <p></p>
-                <Button variant="primary" type="submit">
-                  Alterar
-                </Button>
+                {buttonInfo}
+                {alertComp}
               </Form>
             );
           }}
