@@ -29,6 +29,14 @@ export default function Home() {
     });
   };
 
+  const goToAdd = (person) => {
+    navigate("/detail/-1", {
+      state: {
+        person: "{}",
+      },
+    });
+  };
+
   useEffect(() => {
     getPersonAPI
       .requestPromise()
@@ -70,6 +78,9 @@ export default function Home() {
     <Container>
       <div className="TopPageTitle">
         <Typography variant="h1" color="primary">Usuários</Typography>
+      </div>
+      <div className="addButtonDiv">
+        <Button variant="primary" onClick={() => goToAdd()}>Adicionar</Button>
       </div>
       <Grid container>{cards}</Grid>
     </Container>

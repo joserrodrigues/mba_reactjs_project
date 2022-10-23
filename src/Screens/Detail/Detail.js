@@ -18,6 +18,7 @@ import "./Detail.css"
 export default function Detail() {
 
   const updatePersonAPI = useAPI(Person.updatePersons);
+  const addPersonAPI = useAPI(Person.addPersons);
   const [isLoading, setIsLoading] = useState(false)
   const [connectCode, setConnectCode] = useState(0)
 
@@ -63,39 +64,54 @@ export default function Detail() {
     };
 
     setConnectCode(0);
-    setIsLoading(true)
-    updatePersonAPI
-    .requestPromise(parsedPerson._id,payload)
-    .then((info) => {        
-      console.log("Retornando Info");
-      console.log(info.codeInfo.id);
-      setIsLoading(false);
-      if(info.codeInfo.id === 1){
-        setConnectCode(1);
-        setTimeout(() => {
-          navigate(-1);
-        }, 2000);
-      } else {
-        setConnectCode(-1);
-      }
-    })
-    .catch((info) => {
-      console.log("Retornando Info Erro");
-      console.log(info);
-      setConnectCode(-1);
-    });
+    setIsLoading(true)    
+    if(parseInt(infoID,10) === -1){
+      addPersonAPI
+        .requestPromise(payload)
+        .then(connectSuccess)
+        .catch(connectError);
+    } else {
+      updatePersonAPI
+        .requestPromise(parsedPerson._id, payload)
+        .then(connectSuccess)
+        .catch(connectError);
+    }    
   };
 
+  const connectSuccess = (info) => {
+    console.log("Retornando Info");
+    console.log(info.codeInfo.id);
+    setIsLoading(false);
+    if (info.codeInfo.id === 1) {
+      setConnectCode(1);
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
+    } else {
+      setConnectCode(-1);
+    }
+  };
+
+  const connectError = (info) => {
+    console.log("Retornando Info Erro");
+    console.log(info);
+    setConnectCode(-1);
+  };
+
+  let pageTitleText = "Alterar informação da pessoa";
+  let successConnectText = "Alteração realizada com sucesso!";
+  let buttonText = "Alterar";
+  if(parseInt(infoID,10) === -1){
+    pageTitleText = "Adicionar nova pessoa";
+    successConnectText = "Inserção realizada com sucesso!";
+    buttonText = "Adicionar";
+  }
   let buttonInfo = null;
   let alertComp = null;
   if(isLoading){
     buttonInfo = <CircularProgress color="secondary" />;
   } else if (connectCode === 1){
-    alertComp = (
-      <Alert severity="success">
-        Alteração realizada com sucesso!
-      </Alert>
-    );    
+    alertComp = <Alert severity="success">{successConnectText}</Alert>;    
   } else {
     if ( connectCode !== 0){
       alertComp = (
@@ -106,7 +122,7 @@ export default function Detail() {
     }
     buttonInfo = (
       <Button variant="primary" type="submit">
-        Alterar
+        {buttonText}
       </Button>
     );
   }
@@ -115,7 +131,7 @@ export default function Detail() {
       <Box className="contentBox">
         <div className="TitlePage">
           <Typography variant="h1" color="primary">
-            Alterando Informação
+            {pageTitleText}
           </Typography>
         </div>
         <Formik
